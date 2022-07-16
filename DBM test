@@ -1,0 +1,1913 @@
+{
+  "a": [],
+  "c": [
+    {
+      "actions": {
+        "finish": [],
+        "init": {
+          "custom": "----- Don't Edit Anything Below -----\nWeakAuras.RegisterBigWigsTimer()\nWeakAuras.RegisterDBMCallback(\"DBM_TimerStart\")\nWeakAuras.RegisterDBMCallback(\"DBM_TimerStop\")\nWeakAuras.RegisterDBMCallback(\"DBM_TimerUpdate\")\nWeakAuras.RegisterDBMCallback(\"DBM_TimerPause\")\nWeakAuras.RegisterDBMCallback(\"DBM_TimerResume\")\n\n\nif DBT and aura_env.config.hideDBMBars then\n    if not DBT:GetSkins().Jods_Raid_Ability_Timeline_Skin then\n        local skin = DBT:RegisterSkin(\"Jods_Raid_Ability_Timeline_Skin\")\n        skin.Options = {\n            HugeAlpha = 0.0001,\n            Alpha = 0.0001,\n            IconLeft = false,\n            IconRight = false,\n            InlineIcons = false,\n            Bar7CustomInline = false\n        }\n        if DBT:GetSkins().Jods_Raid_Ability_Timeline_Skin then\n            DBT:SetSkin(\"Jods_Raid_Ability_Timeline_Skin\")\n            DBT:Rearrange()\n        end\n    end\n    \nend\n\nif BigWigsLoader and aura_env.config.hideBWBars then\n    local JODS_WA_RAT_BWCallbackObj = {}\n    local f = function(event,addon,bar,...) \n        bar:SetAlpha(0)\n        bar:EnableMouse(false)\n        -- For some reason the first ever icon after game launch won't be hidden because it hasn't been initialized properly? Set a short timer to hide it again to work around this.\n        local JODS_BW_BAR_TO_HIDE = bar\n        C_Timer.After(2, function() if (JODS_BW_BAR_TO_HIDE~=nil and JODS_BW_BAR_TO_HIDE:GetAlpha() > 0) then JODS_BW_BAR_TO_HIDE:SetAlpha(0) JODS_BW_BAR_TO_HIDE:EnableMouse(false) end end)\n    end\n    BigWigsLoader.RegisterMessage(JODS_WA_RAT_BWCallbackObj, \"BigWigs_BarCreated\", f);\n    BigWigsLoader.RegisterMessage(JODS_WA_RAT_BWCallbackObj, \"BigWigs_BarEmphasized\", f);\nend\n\n\n\naura_env.options = {}\nfor _,option in pairs(aura_env.config.spellOptions) do\n    aura_env.options[option.message] = option\nend\naura_env.IDoptions = {}\nfor _,option in pairs(aura_env.config.spellOptions) do\n    aura_env.IDoptions[option.spellid] = option\nend",
+          "do_custom": true
+        },
+        "start": {
+          "custom": "\n\n",
+          "do_custom": false
+        }
+      },
+      "alpha": 1,
+      "anchorFrameType": "SCREEN",
+      "anchorPoint": "CENTER",
+      "animation": {
+        "finish": {
+          "duration_type": "seconds",
+          "easeStrength": 3,
+          "easeType": "none",
+          "type": "none"
+        },
+        "main": {
+          "alpha": 0,
+          "colorA": 1,
+          "colorB": 1,
+          "colorFunc": "    function(progress, r1, g1, b1, a1, r2, g2, b2, a2)\n      return r1 + (progress * (r2 - r1)), g1 + (progress * (g2 - g1)), b1 + (progress * (b2 - b1)), a1 + (progress * (a2 - a1))\n    end\n  ",
+          "colorG": 1,
+          "colorR": 1,
+          "colorType": "straightColor",
+          "duration_type": "seconds",
+          "easeStrength": 3,
+          "easeType": "none",
+          "rotate": 0,
+          "scalex": 1,
+          "scaley": 1,
+          "translateFunc": "function(progress, startX, startY, deltaX, deltaY)\n    \n    local endX,endY\n    if not aura_env.state then\n        endX = startX\n        endY = startY \n    elseif (aura_env.config.totalDur or 0)>0 and aura_env.state.expirationTime-GetTime()>aura_env.config.totalDur then\n        endX = startX\n        endY = startY+GetScreenHeight()\n        \n    elseif aura_env.state.paused and not aura_env.state.c_queued then\n        local prog=1\n        if aura_env.state.remaining then\n            prog = aura_env.state.remaining/aura_env.config.maxDur\n        end\n        if prog>1 then prog=1\n        elseif prog<0 then prog=0 end\n        if WeakAuras.GetData(aura_env.id).subRegions[1].text_anchorPoint == \"OUTER_LEFT\" then\n            endX = startX + aura_env.region:GetWidth()\n        elseif WeakAuras.GetData(aura_env.id).subRegions[1].text_anchorPoint == \"OUTER_RIGHT\" then\n            endX = startX - aura_env.region:GetWidth()\n        else  \n            print(\"This Anchor is currently not supported\")\n        end\n        endY = startY - ((1-prog) * aura_env.config.travelDist) - (aura_env.state.c_offset or 0)\n    elseif aura_env.state.paused and aura_env.state.c_queued then\n        if WeakAuras.GetData(aura_env.id).subRegions[1].text_anchorPoint == \"OUTER_LEFT\" then\n            endX = startX + aura_env.region:GetWidth()\n        elseif WeakAuras.GetData(aura_env.id).subRegions[1].text_anchorPoint == \"OUTER_RIGHT\" then\n            endX = startX - aura_env.region:GetWidth()\n        else  \n            print(\"This Anchor is currently not supported\")    \n        end\n        endY = startY + (aura_env.state.c_offset or 0)\n    elseif aura_env.state.c_queued and not aura_env.state.paused then\n        endX = startX\n        endY = startY + (aura_env.state.c_offset or 0)    \n    else\n        \n        local prog=1\n        if aura_env.state.expirationTime then\n            prog = (aura_env.state.expirationTime - GetTime())/aura_env.config.maxDur\n        end\n        if prog>1 then prog=1\n        elseif prog<0 then prog=0 end\n        endX = startX\n        endY = startY - ((1-prog) * aura_env.config.travelDist) - (aura_env.state.c_offset or 0)\n    end\n    if aura_env.config.reverse then endY = -aura_env.config.travelDist-endY end\n    return endX,endY\nend",
+          "translateType": "custom",
+          "type": "custom",
+          "use_color": false,
+          "use_translate": true,
+          "x": 0,
+          "y": 0
+        },
+        "start": {
+          "duration_type": "seconds",
+          "easeStrength": 3,
+          "easeType": "none",
+          "type": "none"
+        }
+      },
+      "authorOptions": [
+        {
+          "collapse": false,
+          "groupType": "array",
+          "hideReorder": true,
+          "key": "spellOptions",
+          "limitType": "none",
+          "name": "Spell Options",
+          "nameSource": 1,
+          "size": 10,
+          "subOptions": [
+            {
+              "default": "Name this Entry",
+              "desc": "Name this Entry",
+              "key": "NameField",
+              "length": 10,
+              "multiline": false,
+              "name": "Name this Entry",
+              "type": "input",
+              "useDesc": true,
+              "useLength": false,
+              "width": 1
+            },
+            {
+              "height": 1,
+              "type": "space",
+              "useHeight": false,
+              "variableWidth": true,
+              "width": 1
+            },
+            {
+              "noMerge": false,
+              "text": "",
+              "type": "header",
+              "useName": false,
+              "width": 1
+            },
+            {
+              "default": "",
+              "desc": "DBM/BW Message to be filtered for",
+              "key": "message",
+              "length": 10,
+              "multiline": false,
+              "name": "Message",
+              "type": "input",
+              "useDesc": true,
+              "useLength": false,
+              "width": 1
+            },
+            {
+              "default": true,
+              "desc": "Tick this if you want to ignore the Alert Number e.g. TestBar (4) and replace info for all TestBar's",
+              "key": "IgnoreAlertNumber",
+              "name": "Ignore Alert Number",
+              "type": "toggle",
+              "useDesc": true,
+              "width": 1
+            },
+            {
+              "default": 0,
+              "desc": "Spellid of the BW message to be filtered for",
+              "key": "spellid",
+              "max": 99999999,
+              "min": 0,
+              "name": "Spellid",
+              "step": 1,
+              "type": "number",
+              "useDesc": true,
+              "width": 1
+            },
+            {
+              "fontSize": "medium",
+              "text": "Message or spellid are optional and only one has to be set to work",
+              "type": "description",
+              "width": 2
+            },
+            {
+              "default": false,
+              "desc": "Use \"Name\" as replacement text",
+              "key": "replaceSpellName",
+              "name": "Replace Spell Name",
+              "type": "toggle",
+              "useDesc": true,
+              "width": 1
+            },
+            {
+              "default": "",
+              "key": "spellName",
+              "length": 10,
+              "multiline": false,
+              "name": "Name",
+              "type": "input",
+              "useDesc": false,
+              "useLength": false,
+              "width": 1
+            },
+            {
+              "default": false,
+              "desc": "Replace the Text color",
+              "key": "replaceTextColor",
+              "name": "Replace Text Color",
+              "type": "toggle",
+              "useDesc": true,
+              "width": 1
+            },
+            {
+              "default": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "desc": "Colors the text if \"Replace\" is checked",
+              "key": "textColor",
+              "name": "Text Color",
+              "type": "color",
+              "useDesc": true,
+              "width": 1
+            },
+            {
+              "default": false,
+              "desc": "Enables glow for the given Spell",
+              "key": "glow",
+              "name": "Enable Glow",
+              "type": "toggle",
+              "useDesc": true,
+              "width": 1
+            },
+            {
+              "default": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "key": "glowColor",
+              "name": "Glow Color",
+              "type": "color",
+              "useDesc": false,
+              "width": 1
+            }
+          ],
+          "type": "group",
+          "useCollapse": true,
+          "useDesc": false,
+          "width": 2
+        },
+        {
+          "height": 6,
+          "type": "space",
+          "useHeight": true,
+          "variableWidth": true,
+          "width": 2
+        },
+        {
+          "noMerge": false,
+          "text": "",
+          "type": "header",
+          "useName": false,
+          "width": 1
+        },
+        {
+          "fontSize": "medium",
+          "text": "\n",
+          "type": "description",
+          "width": 2
+        },
+        {
+          "default": 1,
+          "desc": "Set up how you wanna display Bar Names by default it will show everything like DBM/BW does HideNumber hides the spell number behind certain casts while DbmHide~ hides the ~ infront of some spells",
+          "key": "NameOption",
+          "name": "NameOption",
+          "type": "select",
+          "useDesc": true,
+          "values": [
+            "default",
+            "DbmHide~",
+            "HideNumber",
+            "DBMonlyName"
+          ],
+          "width": 1
+        },
+        {
+          "height": 1,
+          "type": "space",
+          "useHeight": false,
+          "variableWidth": true,
+          "width": 1
+        },
+        {
+          "default": 0,
+          "desc": "Show the timers only if the remaining cooldown is less than this value, Set to 0 to always show all timers",
+          "key": "totalDur",
+          "min": 0,
+          "name": "Only show timers if less than",
+          "type": "number",
+          "useDesc": true,
+          "width": 1
+        },
+        {
+          "default": false,
+          "desc": "Because I was inverted...",
+          "key": "reverse",
+          "name": "Inverse Travel Direction",
+          "type": "toggle",
+          "useDesc": true,
+          "width": 0.8
+        },
+        {
+          "type": "space",
+          "variableWidth": false,
+          "width": 1
+        },
+        {
+          "default": 10,
+          "desc": "How long should it take to travel from top to bottom",
+          "key": "maxDur",
+          "min": 0,
+          "name": "Travel Duration",
+          "type": "number",
+          "useDesc": true,
+          "width": 0.6
+        },
+        {
+          "default": 0,
+          "desc": "if you want additional spacing between the icons set the value here",
+          "key": "IconSpacing",
+          "max": 99999,
+          "min": 0,
+          "name": "Icon Spacing",
+          "step": 1,
+          "type": "number",
+          "useDesc": true,
+          "width": 0.6
+        },
+        {
+          "default": 200,
+          "desc": "The total travel distance of the icons. You will also need to manually change the length of the line in the background.",
+          "key": "travelDist",
+          "min": 0,
+          "name": "Travel Distance",
+          "type": "number",
+          "useDesc": true,
+          "width": 0.6
+        },
+        {
+          "type": "space",
+          "variableWidth": false,
+          "width": 1
+        },
+        {
+          "default": 20,
+          "desc": "Max length of the text by the icon. Text longer than this will be truncated and followed by \"..\". Set to 0 to disable truncating text.",
+          "key": "textMaxLength",
+          "min": 0,
+          "name": "Text Max Length",
+          "step": 1,
+          "type": "number",
+          "useDesc": true,
+          "width": 1
+        },
+        {
+          "default": 1,
+          "desc": "Select how you want to display Paused timers",
+          "key": "textPausedOptions",
+          "name": "Text Options - Paused",
+          "type": "select",
+          "useDesc": true,
+          "values": [
+            "replace name with paused",
+            "add paused to name",
+            "add paused but shorten",
+            "don't change"
+          ],
+          "width": 1
+        },
+        {
+          "type": "space",
+          "variableWidth": false,
+          "width": 1
+        },
+        {
+          "fontSize": "large",
+          "text": "\n\nThese options control the default boss mod bars visibility. Changing these options requires a game reload.\n",
+          "type": "description",
+          "width": 2
+        },
+        {
+          "default": true,
+          "key": "hideBWBars",
+          "name": "Hide Default BigWigs Bars",
+          "type": "toggle",
+          "width": 1
+        },
+        {
+          "default": true,
+          "key": "hideDBMBars",
+          "name": "Hide Default DBM Bars",
+          "type": "toggle",
+          "useDesc": false,
+          "width": 1
+        },
+        {
+          "fontSize": "medium",
+          "text": "\n\n",
+          "type": "description",
+          "width": 2
+        },
+        {
+          "type": "space",
+          "variableWidth": false,
+          "width": 1
+        },
+        {
+          "noMerge": false,
+          "text": "",
+          "type": "header",
+          "useName": false,
+          "width": 1
+        },
+        {
+          "collapse": false,
+          "groupType": "simple",
+          "hideReorder": true,
+          "key": "BigIcon",
+          "limitType": "none",
+          "name": "BigIcon WIP",
+          "nameSource": 0,
+          "size": 10,
+          "subOptions": [
+            {
+              "default": false,
+              "desc": "Controls if you want the big icon to hightlight casts",
+              "key": "EnableBigIcon",
+              "name": "EnableBigIcon",
+              "type": "toggle",
+              "useDesc": true,
+              "width": 1
+            }
+          ],
+          "type": "group",
+          "useCollapse": true,
+          "useDesc": false,
+          "width": 1
+        }
+      ],
+      "auto": true,
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "conditions": [
+        {
+          "changes": [
+            {
+              "property": "sub.5.glow",
+              "value": true
+            },
+            {
+              "property": "customcode",
+              "value": {
+                "custom": "if aura_env.IDoptions and aura_env.IDoptions[aura_env.state.spellID] and aura_env.IDoptions[aura_env.state.spellID].glowColor then\n    local r,g,b,a = unpack(aura_env.IDoptions[aura_env.state.spellID].glowColor)\n    if r and g and b and a then\n        aura_env.region.subRegions[4]:SetGlowColor(r,g,b,a)\n    end\nelseif aura_env.options and aura_env.options[aura_env.state.submsg] and aura_env.options[aura_env.state.submsg].glowColor and aura_env.options[aura_env.state.submsg].IgnoreAlertNumber then\n    local r,g,b,a = unpack(aura_env.options[aura_env.state.submsg].glowColor)\n    if r and g and b and a then\n        aura_env.region.subRegions[4]:SetGlowColor(r,g,b,a)\n    end\n    \nelseif aura_env.options and aura_env.options[aura_env.state.cutmsg] and aura_env.options[aura_env.state.cutmsg].glowColor and aura_env.options[aura_env.state.cutmsg].IgnoreAlertNumber then\n    local r,g,b,a = unpack(aura_env.options[aura_env.state.cutmsg].glowColor)\n    if r and g and b and a then\n        aura_env.region.subRegions[4]:SetGlowColor(r,g,b,a)\n    end\n    \nelseif  aura_env.options and aura_env.options[aura_env.state.message] and aura_env.options[aura_env.state.message].glowColor then\n    local r,g,b,a = unpack(aura_env.options[aura_env.state.message].glowColor)\n    if r and g and b and a then\n        aura_env.region.subRegions[4]:SetGlowColor(r,g,b,a)\n    end\n    \nend\n\n\n\n"
+              }
+            }
+          ],
+          "check": {
+            "trigger": 1,
+            "value": 1,
+            "variable": "shouldGlow"
+          }
+        },
+        {
+          "changes": [
+            {
+              "property": "alpha",
+              "value": 0.3
+            },
+            {
+              "property": "sub.2.text_visible"
+            },
+            {
+              "property": "sub.4.text_visible",
+              "value": true
+            }
+          ],
+          "check": {
+            "trigger": 1,
+            "value": 1,
+            "variable": "paused"
+          }
+        },
+        {
+          "changes": [
+            {
+              "property": "sub.3.text_color",
+              "value": [
+                1,
+                0,
+                0,
+                1
+              ]
+            },
+            {
+              "property": "sub.3.text_fontSize",
+              "value": 24
+            }
+          ],
+          "check": {
+            "checks": [
+              {
+                "op": "<",
+                "trigger": 1,
+                "value": "1",
+                "variable": "expirationTime"
+              },
+              {
+                "trigger": 1,
+                "value": 0,
+                "variable": "paused"
+              }
+            ],
+            "op": "<",
+            "trigger": -2,
+            "variable": "AND"
+          },
+          "linked": false
+        },
+        {
+          "changes": [
+            {
+              "property": "sub.3.text_color",
+              "value": [
+                1,
+                0,
+                0,
+                1
+              ]
+            },
+            {
+              "property": "sub.3.text_fontSize",
+              "value": 30
+            }
+          ],
+          "check": {
+            "checks": [
+              {
+                "op": "<",
+                "trigger": 1,
+                "value": "6",
+                "variable": "expirationTime"
+              },
+              {
+                "trigger": 1,
+                "value": 0,
+                "variable": "paused"
+              }
+            ],
+            "op": "<",
+            "trigger": -2,
+            "variable": "AND"
+          },
+          "linked": true
+        },
+        {
+          "changes": [
+            {
+              "property": "sub.3.text_fontSize",
+              "value": 24
+            }
+          ],
+          "check": {
+            "checks": [
+              {
+                "op": "<",
+                "trigger": 1,
+                "value": "11",
+                "variable": "expirationTime"
+              },
+              {
+                "trigger": 1,
+                "value": 0,
+                "variable": "paused"
+              }
+            ],
+            "op": "<",
+            "trigger": -2,
+            "variable": "AND"
+          },
+          "linked": true
+        },
+        {
+          "changes": [
+            {
+              "property": "sub.3.text_fontSize",
+              "value": 18
+            }
+          ],
+          "check": {
+            "checks": [
+              {
+                "op": "<",
+                "trigger": 1,
+                "value": "60",
+                "variable": "expirationTime"
+              },
+              {
+                "trigger": 1,
+                "value": 0,
+                "variable": "paused"
+              }
+            ],
+            "op": "<",
+            "trigger": -2,
+            "variable": "AND"
+          },
+          "linked": true
+        },
+        {
+          "changes": [
+            {
+              "property": "sub.3.text_fontSize",
+              "value": 15
+            }
+          ],
+          "check": {
+            "checks": [
+              {
+                "op": "<",
+                "trigger": 1,
+                "value": "600",
+                "variable": "expirationTime"
+              },
+              {
+                "trigger": 1,
+                "value": 0,
+                "variable": "paused"
+              }
+            ],
+            "op": "<",
+            "trigger": -2,
+            "variable": "AND"
+          },
+          "linked": true
+        },
+        {
+          "changes": [
+            {
+              "property": "sub.3.text_color",
+              "value": [
+                1,
+                0,
+                0,
+                1
+              ]
+            },
+            {
+              "property": "sub.3.text_fontSize",
+              "value": 24
+            }
+          ],
+          "check": {
+            "checks": [
+              {
+                "op": "<",
+                "trigger": 1,
+                "value": "1",
+                "variable": "remaining"
+              },
+              {
+                "trigger": 1,
+                "value": 1,
+                "variable": "paused"
+              }
+            ],
+            "op": "<",
+            "trigger": -2,
+            "variable": "AND"
+          },
+          "linked": false
+        },
+        {
+          "changes": [
+            {
+              "property": "sub.3.text_color",
+              "value": [
+                1,
+                0,
+                0,
+                1
+              ]
+            },
+            {
+              "property": "sub.3.text_fontSize",
+              "value": 30
+            }
+          ],
+          "check": {
+            "checks": [
+              {
+                "op": "<",
+                "trigger": 1,
+                "value": "6",
+                "variable": "remaining"
+              },
+              {
+                "trigger": 1,
+                "value": 1,
+                "variable": "paused"
+              }
+            ],
+            "op": "<",
+            "trigger": -2,
+            "variable": "AND"
+          },
+          "linked": true
+        },
+        {
+          "changes": [
+            {
+              "property": "sub.3.text_fontSize",
+              "value": 24
+            }
+          ],
+          "check": {
+            "checks": [
+              {
+                "trigger": 1,
+                "value": 1,
+                "variable": "paused"
+              },
+              {
+                "op": "<",
+                "trigger": 1,
+                "value": "11",
+                "variable": "remaining"
+              }
+            ],
+            "trigger": -2,
+            "variable": "AND"
+          },
+          "linked": true
+        },
+        {
+          "changes": [
+            {
+              "property": "sub.3.text_fontSize",
+              "value": 18
+            }
+          ],
+          "check": {
+            "checks": [
+              {
+                "trigger": 1,
+                "value": 1,
+                "variable": "paused"
+              },
+              {
+                "op": "<",
+                "trigger": 1,
+                "value": "60",
+                "variable": "remaining"
+              }
+            ],
+            "trigger": -2,
+            "variable": "AND"
+          },
+          "linked": true
+        },
+        {
+          "changes": [
+            {
+              "property": "sub.3.text_fontSize",
+              "value": 20
+            }
+          ],
+          "check": {
+            "checks": [
+              {
+                "trigger": 1,
+                "value": 1,
+                "variable": "paused"
+              },
+              {
+                "op": "<",
+                "trigger": 1,
+                "value": "600",
+                "variable": "remaining"
+              }
+            ],
+            "trigger": -2,
+            "variable": "AND"
+          },
+          "linked": true
+        }
+      ],
+      "config": {
+        "BigIcon": {
+          "EnableBigIcon": false
+        },
+        "IconSpacing": 0,
+        "NameOption": 1,
+        "hideBWBars": true,
+        "hideDBMBars": true,
+        "maxDur": 10,
+        "reverse": false,
+        "spellOptions": [
+          {
+            "IgnoreAlertNumber": false,
+            "NameField": "Pause",
+            "glow": true,
+            "glowColor": [
+              1,
+              0,
+              1,
+              1
+            ],
+            "message": "Pause",
+            "replaceSpellName": true,
+            "replaceTextColor": true,
+            "spellName": "Partytimer!",
+            "spellid": 0,
+            "textColor": [
+              0,
+              1,
+              0,
+              1
+            ]
+          }
+        ],
+        "textMaxLength": 20,
+        "textPausedOptions": 1,
+        "totalDur": 0,
+        "travelDist": 198
+      },
+      "cooldown": true,
+      "cooldownEdge": false,
+      "cooldownSwipe": false,
+      "cooldownTextDisabled": true,
+      "customText": "function()\n    if not aura_env.state then return end\n    \n    local text = aura_env.state.name\n    if not text then return end\n    text = strtrim(text) -- Trim\n    local inlineIconAdjust = string.len(string.match(text,\"|T.-|t\") or \"\")\n    if inlineIconAdjust > 0 then inlineIconAdjust = inlineIconAdjust - 2 end -- Make icons take 2 characters.\n    \n    if (aura_env.config.textMaxLength or 0)>=5 and text:len()-inlineIconAdjust>aura_env.config.textMaxLength then\n        text = string.sub(text,1,aura_env.config.textMaxLength+inlineIconAdjust-2)..\"..\" -- Truncate\n        \n    end\n    \n    \n    if aura_env.state.paused and aura_env.config.textPausedOptions == 1 then   \n        text = \"Paused\"\n    elseif aura_env.state.paused and aura_env.config.textPausedOptions == 2 then\n        text = text..\"Paused\"\n    elseif aura_env.state.paused and aura_env.config.textPausedOptions == 3 then\n        text = string.sub(text,1,text:len()-8)..\"..\"\n        text = text..\"Paused\"\n    end \n    \n    if aura_env.IDoptions and aura_env.IDoptions[aura_env.state.spellID] and aura_env.IDoptions[aura_env.state.spellID].replaceTextColor then\n        local r,g,b,a = unpack(aura_env.IDoptions[aura_env.state.spellID].textColor)\n        text = string.format(\"\\124c%02x%02x%02x%02x%s\\124r\",255*a,255*r,255*g,255*b,text)\n        \n        \n    elseif aura_env.options and aura_env.options[aura_env.state.message] and aura_env.options[aura_env.state.message].replaceTextColor then\n        local r,g,b,a = unpack(aura_env.options[aura_env.state.message].textColor)\n        text = string.format(\"\\124c%02x%02x%02x%02x%s\\124r\",255*a,255*r,255*g,255*b,text)\n        \n    elseif aura_env.options and aura_env.options[aura_env.state.submsg] and aura_env.options[aura_env.state.submsg].replaceTextColor and aura_env.options[aura_env.state.submsg].IgnoreAlertNumber then\n        local r,g,b,a = unpack(aura_env.options[aura_env.state.submsg].textColor)\n        text = string.format(\"\\124c%02x%02x%02x%02x%s\\124r\",255*a,255*r,255*g,255*b,text)\n        \n    elseif aura_env.options and aura_env.options[aura_env.state.cutmsg] and aura_env.options[aura_env.state.cutmsg].replaceTextColor and aura_env.options[aura_env.state.cutmsg].IgnoreAlertNumber then\n        local r,g,b,a = unpack(aura_env.options[aura_env.state.cutmsg].textColor)\n        text = string.format(\"\\124c%02x%02x%02x%02x%s\\124r\",255*a,255*r,255*g,255*b,text)\n        \n        \n    elseif aura_env.state.colorTable then\n        local r,g,b = unpack(aura_env.state.colorTable)\n        text = string.format(\"\\124c%02x%02x%02x%02x%s\\124r\",255,255*r,255*g,255*b,text)\n    end\n    \n    --aura_env.region.subRegions[1]:ClearAllPoints()\n    --aura_env.region.subRegions[1]:SetAnchor(\"BOTTOMLEFT\", aura_env.region, \"TOPRIGHT\")\n    -- aura_env.region:AnchorSubRegion(aura_env.region.subRegions[1],\"point\",WeakAuras.GetData(aura_env.id).subRegions[1].text_selfPoint, \"OUTER_RIGHT\",(WeakAuras.GetData(aura_env.id).subRegions[1].text_anchorXOffset or 0),(WeakAuras.GetData(aura_env.id).subRegions[1].text_anchorYOffset or 0))\n    --aura_env.region.subRegions[1]:UpdateAnchor()\n    --aura_env.region.subRegions[1]:SetAnchor(\"BOTTOMLEFT\", aura_env.region, \"TOPRIGHT\")\n    return text\nend\n\n\n",
+      "customTextUpdate": "event",
+      "desaturate": false,
+      "desc": "BigWigs Bar Replacement",
+      "displayText": "%p",
+      "font": "Friz Quadrata TT",
+      "fontSize": 12,
+      "frameStrata": 1,
+      "height": 32,
+      "icon": true,
+      "iconSource": -1,
+      "id": "Raid Ability Timeline Icon",
+      "information": {
+        "ignoreOptionsEventErrors": true
+      },
+      "internalVersion": 50,
+      "inverse": false,
+      "justify": "LEFT",
+      "keepAspectRatio": false,
+      "load": {
+        "affixes": {
+          "multi": []
+        },
+        "class": {
+          "multi": []
+        },
+        "difficulty": {
+          "multi": []
+        },
+        "faction": {
+          "multi": []
+        },
+        "ingroup": {
+          "multi": []
+        },
+        "pvptalent": {
+          "multi": []
+        },
+        "race": {
+          "multi": []
+        },
+        "role": {
+          "multi": []
+        },
+        "size": {
+          "multi": []
+        },
+        "spec": {
+          "multi": []
+        },
+        "talent": {
+          "multi": []
+        },
+        "talent2": {
+          "multi": []
+        },
+        "use_never": false,
+        "zoneIds": ""
+      },
+      "outline": "OUTLINE",
+      "regionType": "icon",
+      "selfPoint": "CENTER",
+      "semver": "1.0.0",
+      "stickyDuration": false,
+      "subRegions": [
+        {
+          "type": "subbackground"
+        },
+        {
+          "anchorXOffset": 0,
+          "anchorYOffset": 0,
+          "rotateText": "NONE",
+          "text_anchorPoint": "OUTER_LEFT",
+          "text_automaticWidth": "Auto",
+          "text_color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "text_fixedWidth": 64,
+          "text_font": "ArchivoNarrow-Bold",
+          "text_fontSize": 15,
+          "text_fontType": "OUTLINE",
+          "text_justify": "CENTER",
+          "text_selfPoint": "AUTO",
+          "text_shadowColor": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "text_shadowXOffset": 0,
+          "text_shadowYOffset": 0,
+          "text_text": "%c",
+          "text_text_format_1_format": "none",
+          "text_text_format_c.1_format": "none",
+          "text_text_format_c.2_format": "none",
+          "text_text_format_c1_format": "none",
+          "text_text_format_c2_format": "none",
+          "text_visible": true,
+          "text_wordWrap": "WordWrap",
+          "type": "subtext"
+        },
+        {
+          "anchorXOffset": 0,
+          "anchorYOffset": 0,
+          "rotateText": "NONE",
+          "text_anchorPoint": "CENTER",
+          "text_automaticWidth": "Auto",
+          "text_color": [
+            1,
+            1,
+            0,
+            1
+          ],
+          "text_fixedWidth": 64,
+          "text_font": "PT Sans Narrow",
+          "text_fontSize": 13,
+          "text_fontType": "OUTLINE",
+          "text_justify": "CENTER",
+          "text_selfPoint": "AUTO",
+          "text_shadowColor": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "text_shadowXOffset": 0,
+          "text_shadowYOffset": 0,
+          "text_text": "%p",
+          "text_text_format_c.2_format": "none",
+          "text_text_format_c2_format": "none",
+          "text_text_format_p_decimal_precision": 0,
+          "text_text_format_p_format": "timed",
+          "text_text_format_p_gcd_cast": false,
+          "text_text_format_p_gcd_channel": false,
+          "text_text_format_p_gcd_gcd": true,
+          "text_text_format_p_gcd_hide_zero": false,
+          "text_text_format_p_round_type": "ceil",
+          "text_text_format_p_time_dynamic_threshold": 1,
+          "text_text_format_p_time_format": 0,
+          "text_text_format_p_time_precision": 1,
+          "text_visible": true,
+          "text_wordWrap": "WordWrap",
+          "type": "subtext"
+        },
+        {
+          "anchorXOffset": 0,
+          "anchorYOffset": 0,
+          "rotateText": "NONE",
+          "text_anchorPoint": "OUTER_RIGHT",
+          "text_automaticWidth": "Auto",
+          "text_color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "text_fixedWidth": 64,
+          "text_font": "ArchivoNarrow-Bold",
+          "text_fontSize": 15,
+          "text_fontType": "OUTLINE",
+          "text_justify": "CENTER",
+          "text_selfPoint": "AUTO",
+          "text_shadowColor": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "text_shadowXOffset": 0,
+          "text_shadowYOffset": 0,
+          "text_text": "%c",
+          "text_text_format_1_format": "none",
+          "text_text_format_c.1_format": "none",
+          "text_text_format_c.2_format": "none",
+          "text_text_format_c1_format": "none",
+          "text_text_format_c2_format": "none",
+          "text_visible": false,
+          "text_wordWrap": "WordWrap",
+          "type": "subtext"
+        },
+        {
+          "glow": false,
+          "glowBorder": false,
+          "glowColor": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "glowFrequency": 0.25,
+          "glowLength": 10,
+          "glowLines": 8,
+          "glowScale": 1,
+          "glowThickness": 2,
+          "glowType": "Pixel",
+          "glowXOffset": 0,
+          "glowYOffset": 0,
+          "type": "subglow",
+          "useGlowColor": true
+        }
+      ],
+      "tocversion": 20503,
+      "triggers": {
+        "1": {
+          "trigger": {
+            "check": "event",
+            "custom": "function(allstates,event,bar)\n    if event == \"DBM_TimerStart\" or event == \"BigWigs_StartBar\" then\n        if not bar then return end\n        local msg = nil\n        local duration = nil\n        local icon = nil\n        local exp = nil\n        local colorTable = nil\n        local spellId = nil\n        local count = nil\n        if event == \"BigWigs_StartBar\" then\n            local b = WeakAuras.GetBigWigsTimerById(bar)\n            if b then\n                msg = b.text\n                duration = b.duration\n                icon = b.icon\n                exp = b.expirationTime\n                colorTable = b.bwTextColor\n                spellId = b.spellId\n                count = b.count\n            end\n        else \n            local b = WeakAuras.GetDBMTimerById(bar)\n            if b then\n                msg = b.message\n                duration = b.duration\n                icon = b.icon\n                exp = b.expirationTime\n                colorTable = b.dbmColor\n                spellId = b.spellId\n                count = b.count\n                \n            end\n        end\n        \n        allstates[bar] = allstates[bar] or {}\n        local state = allstates[bar]\n        local submsg = strtrim(msg:gsub(\"~\", \"\")) -- cut ~\n        local cutmsg = strtrim(msg:gsub(\"^~ ?\", \"\"):gsub(\"%s+%(%d+%)\",\"\"))  -- cut number and ~\n        local nbmsg = strtrim(msg:gsub(\"%s+%(%d+%)\",\"\")) -- cut number\n        \n        if aura_env.options and aura_env.options[msg] and aura_env.options[msg].replaceSpellName and aura_env.options[msg].spellName  then\n            state.name = aura_env.options[msg].spellName\n            --spell Name\n        elseif spellId and aura_env.IDoptions and aura_env.IDoptions[spellId] and aura_env.IDoptions[spellId].replaceSpellName and aura_env.IDoptions[spellId].spellName then\n            state.name = aura_env.IDoptions[spellId].spellName\n            --spell ID\n        elseif aura_env.options and aura_env.options[submsg] and aura_env.options[submsg].replaceSpellName and aura_env.options[submsg].spellName then\n            state.name = aura_env.options[submsg].spellName\n            --spell Name ignore ~\n        elseif aura_env.options and aura_env.options[cutmsg] and aura_env.options[cutmsg].replaceSpellName and aura_env.options[cutmsg].spellName and aura_env.options[cutmsg].IgnoreAlertNumber then\n            state.name = aura_env.options[cutmsg].spellName\n            --spell Name ignore Spellcount\n        elseif aura_env.config.NameOption == 1 then\n            state.name = msg\n            --default\n        elseif aura_env.config.NameOption == 2 then\n            state.name = submsg\n            -- hide ~ \n        elseif aura_env.config.NameOption == 3 then\n            state.name = nbmsg\n            -- hide number\n        elseif aura_env.config.NameOption == 4 then\n            state.name = cutmsg\n            -- hide number and ~\n        else   \n            state.name = msg\n        end\n        \n        if aura_env.options and aura_env.options[msg] and aura_env.options[msg].glow then\n            state.shouldGlow = true\n        elseif spellId and aura_env.IDoptions and aura_env.IDoptions[spellId] and aura_env.IDoptions[spellId].glow then\n            state.shouldGlow = true\n        elseif aura_env.options and aura_env.options[submsg] and aura_env.options[submsg].glow then\n            state.shouldGlow = true\n        elseif aura_env.options and aura_env.options[cutmsg] and aura_env.options[cutmsg].glow and aura_env.options[cutmsg].IgnoreAlertNumber then\n            state.shouldGlow = true\n        else\n            state.shouldGlow = false\n        end\n        \n        \n        state.message = msg\n        state.submsg = submsg\n        state.cutmsg = cutmsg\n        state.nbmsg = nbmsg\n        state.icon = icon\n        state.progressType = \"timed\"\n        state.expirationTime = exp\n        state.duration = exp-GetTime()\n        state.colorTable = colorTable\n        state.c_offset = 0\n        state.autoHide = true\n        state.changed = true\n        state.show = true \n        state.paused = false\n        if  spellId then\n            state.spellID  = spellId\n        end\n        local now = GetTime()\n        \n        \n        if exp < now + aura_env.config.maxDur then\n            state.c_queued=false\n            \n        elseif exp-now-aura_env.config.maxDur > 0 then\n            state.c_queued=true\n            C_Timer.After(exp-now-aura_env.config.maxDur, function() WeakAuras.ScanEvents(\"Jods_Raid_Ability_Timeline_Refresh\",bar) end)\n        end\n        \n        \n    elseif event==\"DBM_TimerStop\" or event == \"BigWigs_StopBar\" then\n        if not bar then return end\n        allstates[bar] = allstates[bar] or {}\n        local state = allstates[bar]\n        state.show=false\n        state.changed=true\n        \n    elseif event==\"DBM_TimerUpdate\" then\n        if not bar then return end\n        local state = allstates[bar]\n        if state then\n            local b = WeakAuras.GetDBMTimerById(bar)\n            if b then\n                local exp = b.expirationTime\n                state.duration = b.duration\n                state.expirationTime = exp\n                \n                local now = GetTime()\n                if exp < now + aura_env.config.maxDur then\n                    state.c_queued=false\n                else\n                    state.c_queued=true\n                    C_Timer.After(exp-now-aura_env.config.maxDur, function() WeakAuras.ScanEvents(\"Jods_Raid_Ability_Timeline_Refresh\",bar) end)\n                end\n                state.changed = true\n            end\n        end\n    elseif event == \"BigWigs_OnBossDisable\" then\n        for _,state in pairs(allstates) do\n            state.show=false\n            state.changed=true\n            \n        end\n        return true \n    elseif event==\"Jods_Raid_Ability_Timeline_Refresh\" then\n        if not allstates[bar] then return end\n        -- For performance reasons, we are not canceling the REFRESH callbacks when events are canceled. \n        -- Therefore we need to disregard the ones that are leaked from the previous pull.\n        if not allstates[bar].paused then\n            local timeLeft = (allstates[bar].expirationTime or 0) - GetTime()\n            if (aura_env.config.maxDur or 0)-timeLeft > 0.5 or (aura_env.config.maxDur or 0)-timeLeft < -0.1 then return end\n            allstates[bar].c_offset=0\n            allstates[bar].c_queued=false\n            allstates[bar].changed=true\n        end\n        \n    elseif event == \"BigWigs_PauseBar\" or event == \"DBM_TimerPause\" then\n        \n        local state = allstates[bar] \n        if state then\n            if state.expirationTime - GetTime() >0 then\n                state.remaining = state.expirationTime - GetTime()\n                state.changed = true\n                state.paused = true\n                state.c_offset = 0\n            else\n                state.show = false\n                state.changed = true\n            end\n            \n        end  \n    elseif event == \"DBM_TimerResume\" or event == \"BigWigs_ResumeBar\" then\n        \n        local state = allstates[bar]\n        if state then\n            state.paused = false\n            state.expirationTime = GetTime() + (state.remaining or 0)\n            state.changed = true\n            state.c_offset = 0\n            \n            if state.c_queued == true then\n                if state.remaining-aura_env.config.maxDur > 0 then\n                    C_Timer.After(state.remaining-aura_env.config.maxDur, function() WeakAuras.ScanEvents(\"Jods_Raid_Ability_Timeline_Refresh\",bar) end)\n                else \n                    state.c_queued=false\n                end\n                \n            end\n            \n        end\n    elseif event == \"Jods_Raid_Ability_Timeline_Options_Event\" then\n        -- purely cosmetic restarting timers after closing /wa options\n        local dbm = WeakAuras.GetAllDBMTimers()\n        for k, v in pairs(dbm) do\n            WeakAuras.ScanEvents(\"DBM_TimerStart\",k)\n        end\n        local bw = WeakAuras.GetAllBigWigsTimers()\n        for k, v in pairs(bw) do\n            WeakAuras.ScanEvents(\"BigWigs_StartBar\",k)\n        end\n        \n    end\n    \n    \n    -- Refresh and recalculate offset\n    local queuedEvents={}\n    local PausedQueuedEvents={}\n    local events={}\n    local PausedEvents={}\n    -- Sort everything by exp\n    for id,state in pairs(allstates) do\n        if state.c_queued and not state.paused then\n            table.insert(queuedEvents,{id=id,exp=state.expirationTime})\n        elseif state.c_queued and state.paused then\n            table.insert(PausedQueuedEvents,{id=id,exp=state.remaining}) \n        elseif state.paused then\n            table.insert(PausedEvents,{id=id,exp=state.remaininge})  \n        else\n            table.insert(events,{id=id,exp=state.expirationTime})\n        end\n    end\n    \n    \n    table.sort(queuedEvents,function(a,b) return (a.exp or 0)<(b.exp or 0) end)\n    table.sort(events,function(a,b) return (a.exp or 0)<(b.exp or 0) end)\n    table.sort(PausedQueuedEvents,function(a,b) return (a.exp or 0)<(b.exp or 0) end)\n    table.sort(PausedEvents,function(a,b) return (a.exp or 0)<(b.exp or 0) end)\n    \n    -- Calculate offset for queued events\n    for i,event in ipairs(queuedEvents) do\n        allstates[event.id].c_offset=i*(aura_env.region:GetHeight()+aura_env.config.IconSpacing)\n        \n    end\n    -- calculate offset for queued paused events\n    for i,event in ipairs(PausedQueuedEvents) do\n        allstates[event.id].c_offset=i*(aura_env.region:GetHeight()+aura_env.config.IconSpacing)\n        \n    end\n    -- calculate offset for paused events\n    \n    for i=#PausedEvents,1,-1 do\n        local event=PausedEvents[i]\n        local lastEvent = PausedEvents[i+1]\n        if lastEvent then\n            allstates[event.id].c_offset = (aura_env.region:GetHeight()+aura_env.config.IconSpacing) - \n            (((allstates[lastEvent.id].remaining or 0)-(allstates[event.id].remaining or 0)) *\n                aura_env.config.travelDist / aura_env.config.maxDur - (allstates[lastEvent.id].c_offset or 0))\n            -- offset must be positive\n            if allstates[event.id].c_offset < 0 then allstates[event.id].c_offset = 0 end\n        end\n    end\n    \n    \n    \n    -- Calculate offset for the regluar events to prevent icon collision\n    for i=#events,1,-1 do\n        local event=events[i]\n        local lastEvent = events[i+1]\n        if lastEvent then\n            allstates[event.id].c_offset = (aura_env.region:GetHeight()+aura_env.config.IconSpacing) - \n            (((allstates[lastEvent.id].expirationTime or 0)-(allstates[event.id].expirationTime or 0)) *\n                aura_env.config.travelDist / aura_env.config.maxDur - (allstates[lastEvent.id].c_offset or 0))\n            -- offset must be positive\n            if allstates[event.id].c_offset < 0 then allstates[event.id].c_offset = 0 end\n        end\n    end\n    return true\nend",
+            "customVariables": "{\n    expirationTime = true,\n    duration = true,  \n    paused = \"bool\",\n    shouldGlow = \"bool\",\n    remaining = \"number\"\n    \n}",
+            "custom_hide": "timed",
+            "custom_type": "stateupdate",
+            "debuffType": "HELPFUL",
+            "event": "Chat Message",
+            "events": "DBM_TimerStart, DBM_TimerStop,  DBM_TimerUpdate, DBM_TimerPause, DBM_TimerResume, BigWigs_StartBar, BigWigs_StopBar, BigWigs_StopBars, BigWigs_OnBossDisable, BigWigs_PauseBar, BigWigs_ResumeBar, Jods_Raid_Ability_Timeline_Refresh, Jods_Raid_Ability_Timeline_Options_Event, OPTIONS",
+            "genericShowOn": "showOnActive",
+            "names": [],
+            "spellIds": [],
+            "subeventPrefix": "SPELL",
+            "subeventSuffix": "_CAST_START",
+            "type": "custom",
+            "unevent": "auto",
+            "unit": "player"
+          },
+          "untrigger": []
+        },
+        "activeTriggerMode": 1,
+        "disjunctive": "all"
+      },
+      "uid": "AHz3O3GTd3Z",
+      "url": "https://wago.io/BEEWb7XdO/1",
+      "version": 1,
+      "wagoID": "BEEWb7XdO",
+      "width": 32,
+      "xOffset": 0,
+      "yOffset": 0,
+      "zoom": 0
+    },
+    {
+      "actions": {
+        "finish": [],
+        "init": {
+          "custom": "aura_env.timers={}\nlocal bar = aura_env.region.bar\nlocal j = 1\nwhile bar[\"spark\"..j] do\n    bar[\"spark\"..j]:Hide()\n    j = j + 1\nend\nj = 1\nwhile bar[\"sparktext\"..j] do\n    bar[\"sparktext\"..j]:Hide()\n    j = j + 1\nend\n\nif aura_env.config.ticks then\n    if bar then \n        local widthPerSegment = bar:GetHeight() / aura_env.config.maxDur\n        local tickAmount = floor((aura_env.config.maxDur-0.1)/5)\n        local region = WeakAuras.regions[aura_env.id].region\n        --[[local textsubtract = 0\n        if aura_env.config.BigIcon.EnableBigIcon == true then \n            textsubtract = 5\n        end\n        ]]\n        \n        \n        for i = 1, tickAmount do\n            if not bar[\"spark\"..i] then\n                local spark = bar:CreateTexture(nil, \"ARTWORK\");\n                spark:SetDrawLayer(\"ARTWORK\", 3);\n                bar[\"spark\"..i] = spark\n            end \n            if not bar[\"sparktext\"..i] then \n                local sparktext = bar:CreateFontString(nil,\"ARTWORK\")\n                sparktext:SetDrawLayer(\"ARTWORK\", 3);\n                bar[\"sparktext\"..i] = sparktext\n                \n            end\n            \n            bar[\"spark\"..i]:SetTexture(\"Interface\\\\AddOns\\\\WeakAuras\\\\Media\\\\Textures\\\\Square_White.tga\")\n            bar[\"spark\"..i]:SetWidth(bar:GetWidth());\n            bar[\"spark\"..i]:SetHeight(1);\n            bar[\"spark\"..i]:SetBlendMode(\"ALPHAKEY\");\n            bar[\"spark\"..i]:SetVertexColor(\n                1,\n                1,\n                1,\n                1\n            )\n            bar[\"spark\"..i]:ClearAllPoints()\n            local offset = widthPerSegment*(5*i)\n            bar[\"spark\"..i]:SetPoint(\"BOTTOM\", bar, \"BOTTOM\", 0, offset+0.1)\n            bar[\"spark\"..i]:Show()\n            \n            bar[\"sparktext\"..i]:SetFont(\"Interface\\\\AddOns\\\\WeakAuras\\\\Media\\\\Fonts\\\\FiraMono-Medium.ttf\",12)\n            bar[\"sparktext\"..i]:SetText((i*5))\n            bar[\"sparktext\"..i]:ClearAllPoints()\n            bar[\"sparktext\"..i]:SetPoint(\"BOTTOM\", bar, \"BOTTOM\", 25, offset-5)\n            bar[\"sparktext\"..i]:Show()\n            \n        end\n    end\n    \nend\n\n\n\n",
+          "do_custom": true
+        },
+        "start": []
+      },
+      "alpha": 1,
+      "anchorFrameType": "SCREEN",
+      "anchorPoint": "CENTER",
+      "animation": {
+        "finish": {
+          "duration_type": "seconds",
+          "easeStrength": 3,
+          "easeType": "none",
+          "type": "none"
+        },
+        "main": {
+          "duration_type": "seconds",
+          "easeStrength": 3,
+          "easeType": "none",
+          "type": "none"
+        },
+        "start": {
+          "duration_type": "seconds",
+          "easeStrength": 3,
+          "easeType": "none",
+          "type": "none"
+        }
+      },
+      "authorOptions": [
+        {
+          "default": 10,
+          "desc": "How long should it take to travel from top to bottom",
+          "key": "maxDur",
+          "min": 0,
+          "name": "Travel Duration",
+          "type": "number",
+          "useDesc": true,
+          "width": 0.6
+        },
+        {
+          "default": false,
+          "desc": "If you want to show ticks on the bar",
+          "key": "ticks",
+          "name": "Ticks",
+          "type": "toggle",
+          "useDesc": true,
+          "width": 1
+        },
+        {
+          "collapse": false,
+          "groupType": "simple",
+          "hideReorder": true,
+          "key": "BigIcon",
+          "limitType": "none",
+          "name": "BigIcon",
+          "nameSource": 0,
+          "size": 10,
+          "subOptions": [
+            {
+              "default": false,
+              "desc": "Controls if you want the big icon to hightlight casts",
+              "key": "EnableBigIcon",
+              "name": "EnableBigIcon",
+              "type": "toggle",
+              "useDesc": true,
+              "width": 1
+            }
+          ],
+          "type": "group",
+          "useCollapse": true,
+          "useDesc": false,
+          "width": 1
+        }
+      ],
+      "auto": true,
+      "backdropColor": [
+        0,
+        0,
+        0,
+        0.64000001549721
+      ],
+      "backdropInFront": false,
+      "backgroundColor": [
+        0.058823529411765,
+        0.058823529411765,
+        0.058823529411765,
+        0.80000001192093
+      ],
+      "backgroundOffset": 2,
+      "backgroundTexture": "Textures\\SpellActivationOverlays\\Eclipse_Sun",
+      "barColor": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "blendMode": "ADD",
+      "borderBackdrop": "None",
+      "borderInFront": true,
+      "color": [
+        1,
+        1,
+        1,
+        0.771618694067
+      ],
+      "compress": false,
+      "conditions": [],
+      "config": {
+        "BigIcon": {
+          "EnableBigIcon": false
+        },
+        "maxDur": 10,
+        "ticks": true
+      },
+      "crop": 0.41,
+      "crop_x": 0.41,
+      "crop_y": 0.41,
+      "customTextUpdate": "update",
+      "desaturate": true,
+      "desaturateBackground": false,
+      "desaturateForeground": false,
+      "desc": "BigWigs Bar Replacement",
+      "discrete_rotation": 0,
+      "endAngle": 360,
+      "fontFlags": "OUTLINE",
+      "foregroundColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "foregroundTexture": "Textures\\SpellActivationOverlays\\Eclipse_Sun",
+      "frameStrata": 3,
+      "height": 228,
+      "icon": false,
+      "iconSource": -1,
+      "icon_color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "icon_side": "RIGHT",
+      "id": "Raid Ability Timeline Backdrop ElvUI",
+      "information": {
+        "ignoreOptionsEventErrors": true
+      },
+      "internalVersion": 50,
+      "inverse": false,
+      "load": {
+        "affixes": {
+          "multi": []
+        },
+        "class": {
+          "multi": []
+        },
+        "difficulty": {
+          "multi": []
+        },
+        "faction": {
+          "multi": []
+        },
+        "ingroup": {
+          "multi": []
+        },
+        "pvptalent": {
+          "multi": []
+        },
+        "race": {
+          "multi": []
+        },
+        "role": {
+          "multi": []
+        },
+        "size": {
+          "multi": []
+        },
+        "spec": {
+          "multi": []
+        },
+        "talent": {
+          "multi": []
+        },
+        "talent2": {
+          "multi": []
+        },
+        "use_never": false,
+        "zoneIds": ""
+      },
+      "mirror": false,
+      "orientation": "VERTICAL",
+      "regionType": "aurabar",
+      "rotate": true,
+      "rotation": 90,
+      "sameTexture": true,
+      "selfPoint": "TOP",
+      "semver": "1.0.0",
+      "spark": false,
+      "sparkBlendMode": "ADD",
+      "sparkColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "sparkHeight": 30,
+      "sparkHidden": "NEVER",
+      "sparkOffsetX": 0,
+      "sparkOffsetY": 0,
+      "sparkRotation": 0,
+      "sparkRotationMode": "AUTO",
+      "sparkTexture": "Interface\\CastingBar\\UI-CastingBar-Spark",
+      "sparkWidth": 10,
+      "startAngle": 0,
+      "stickyDuration": false,
+      "subRegions": [
+        {
+          "type": "subbackground"
+        },
+        {
+          "type": "subforeground"
+        },
+        {
+          "border_anchor": "bar",
+          "border_color": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "border_edge": "1 Pixel",
+          "border_offset": 1,
+          "border_size": 1,
+          "border_visible": true,
+          "type": "subborder"
+        }
+      ],
+      "texture": "Skullflower1",
+      "textureWrapMode": "CLAMP",
+      "tocversion": 20503,
+      "triggers": {
+        "1": {
+          "trigger": {
+            "check": "event",
+            "customVariables": "{\n    expirationTime = true,\n    duration = true,\n    \n    shouldGlow = {\n        display = \"Should Glow\",\n        type = \"bool\",\n        test = function(state, needle)\n            if not aura_env then return end\n            return (aura_env.options[state.spellId] and aura_env.options[state.spellId].glow) == (needle == 1)\n        end,\n        events = {\n            \n        },\n    }\n}",
+            "custom_hide": "timed",
+            "custom_type": "status",
+            "debuffType": "HELPFUL",
+            "event": "DBM Timer",
+            "events": "PHOGUILD_RAT,PHOGUILD_RAT_EXP",
+            "genericShowOn": "showOnActive",
+            "names": [],
+            "spellIds": [],
+            "subeventPrefix": "SPELL",
+            "subeventSuffix": "_CAST_START",
+            "type": "addons",
+            "unevent": "auto",
+            "unit": "player",
+            "use_absorbMode": true,
+            "use_unit": true
+          },
+          "untrigger": []
+        },
+        "2": {
+          "trigger": {
+            "debuffType": "HELPFUL",
+            "event": "BigWigs Timer",
+            "type": "addons",
+            "unit": "player"
+          },
+          "untrigger": []
+        },
+        "activeTriggerMode": -10,
+        "disjunctive": "any"
+      },
+      "uid": "NrlegamJ0Ux",
+      "url": "https://wago.io/BEEWb7XdO/1",
+      "useAdjustedMax": false,
+      "useAdjustedMin": false,
+      "useAdjustededMax": false,
+      "useAdjustededMin": false,
+      "user_x": 0,
+      "user_y": 0,
+      "version": 1,
+      "wagoID": "BEEWb7XdO",
+      "width": 32,
+      "xOffset": 0,
+      "yOffset": 15,
+      "zoom": 0
+    },
+    {
+      "actions": {
+        "finish": [],
+        "init": {
+          "custom": "aura_env.counter = {}\naura_env.specifiedValues = {}\naura_env.specifiedSpellID = {}\naura_env.Callback = {}\nWeakAuras.RegisterBigWigsTimer()\nWeakAuras.RegisterDBMCallback(\"DBM_TimerStart\")\nWeakAuras.RegisterDBMCallback(\"DBM_TimerStop\")\nWeakAuras.RegisterDBMCallback(\"DBM_TimerUpdate\")\naura_env.activeTimers = {}\n\n\n\nfor k,v in pairs{strsplit(\",\", aura_env.config.BigIcon.specifiedSpellID)} do aura_env.specifiedSpellID[v] = true end\n\n\n\n-----------------------------------------\n--            USER SETTINGS            --\n-----------------------------------------\nlocal spacing = 4 -- adjust to preference\nlocal perRow = 0 -- use 0 for no wrapping\nlocal horzontal_growth = \"RIGHT\" -- or \"LEFT\"\nlocal vertical_growth = \"UP\" -- or \"DOWN\"\n\nlocal do_sort = true -- or false\nlocal sort_by = \"expirationTime\" -- should be a valid aura_env.state child\nlocal sort_direction = \"DESC\" -- or \"ASC\"\n\n-----------------------------------------\n--             DO NOT TOUCH            --\n-----------------------------------------\n\nlocal aura_env = aura_env\naura_env.sortAndOffset = function()\n    local baseX = WeakAuras.regions[aura_env.id].region.xOffset\n    local baseY = WeakAuras.regions[aura_env.id].region.yOffset\n    local count = 0\n    local t = {}\n    for k, v in pairs(WeakAuras.clones[aura_env.id]) do\n        table.insert(t, v)\n    end\n    if do_sort then\n        if sort_direction == \"DESC\" then\n            table.sort(t, function(a,b) return a.state[sort_by] < b.state[sort_by] end)\n        else\n            table.sort(t, function(a,b) return a.state[sort_by] > b.state[sort_by] end)\n        end\n    end\n    for i, region in ipairs(t) do\n        if region.toShow then\n            local column = perRow > 0 and count % perRow or count\n            local xOff = (region.width + spacing) * column\n            xOff = horzontal_growth == \"LEFT\" and 0-xOff or xOff\n            local row = perRow > 0 and math.floor(count / perRow) or 0\n            local yOff = - row * (region.height + spacing)\n            yOff = vertical_growth == \"UP\" and 0-yOff or yOff\n            region:SetOffset(baseX + xOff, baseY + yOff)\n            count = count + 1\n        end\n    end\nend",
+          "do_custom": true
+        },
+        "start": []
+      },
+      "alpha": 1,
+      "anchorFrameType": "SCREEN",
+      "anchorPoint": "CENTER",
+      "animation": {
+        "finish": {
+          "duration_type": "seconds",
+          "easeStrength": 3,
+          "easeType": "none",
+          "type": "none"
+        },
+        "main": {
+          "alpha": 0,
+          "alphaFunc": "function(progress, start, delta)\n    \n    aura_env.sortAndOffset()\n    return start\nend",
+          "alphaType": "custom",
+          "colorA": 1,
+          "colorB": 1,
+          "colorG": 1,
+          "colorR": 1,
+          "duration": "5",
+          "duration_type": "seconds",
+          "easeStrength": 3,
+          "easeType": "none",
+          "rotate": 0,
+          "scalex": 1,
+          "scaley": 1,
+          "type": "custom",
+          "use_alpha": true,
+          "x": 0,
+          "y": 0
+        },
+        "start": {
+          "duration_type": "seconds",
+          "easeStrength": 3,
+          "easeType": "none",
+          "type": "none"
+        }
+      },
+      "authorOptions": [
+        {
+          "noMerge": false,
+          "text": "",
+          "type": "header",
+          "useName": false,
+          "width": 1
+        },
+        {
+          "collapse": false,
+          "groupType": "simple",
+          "hideReorder": true,
+          "key": "BigIcon",
+          "limitType": "none",
+          "name": "BigIcon WIP",
+          "nameSource": 0,
+          "size": 10,
+          "subOptions": [
+            {
+              "default": false,
+              "desc": "Controls if you want the big icon to hightlight casts",
+              "key": "EnableBigIcon",
+              "name": "EnableBigIcon",
+              "type": "toggle",
+              "useDesc": true,
+              "width": 1
+            },
+            {
+              "default": true,
+              "key": "excludeCast",
+              "name": "Exclude <Cast> bars",
+              "type": "toggle",
+              "useDesc": false,
+              "width": 1
+            },
+            {
+              "default": false,
+              "desc": "if you want to only show the BigIcon for specific spellids",
+              "key": "enableSpellIDFiltering",
+              "name": "enableSpellIDFiltering",
+              "type": "toggle",
+              "useDesc": true,
+              "width": 1
+            },
+            {
+              "default": "",
+              "desc": "If you only want to show bigicon for Bars with the following spellid",
+              "key": "specifiedSpellID",
+              "length": 10,
+              "multiline": false,
+              "name": "Specified spellID (comma seperated)",
+              "type": "input",
+              "useDesc": true,
+              "useLength": false,
+              "width": 1
+            }
+          ],
+          "type": "group",
+          "useCollapse": true,
+          "useDesc": false,
+          "width": 1
+        }
+      ],
+      "auto": true,
+      "backdropColor": [
+        1,
+        1,
+        1,
+        0.5
+      ],
+      "backdropInFront": false,
+      "backgroundColor": [
+        0,
+        0,
+        0,
+        0.50296559929848
+      ],
+      "barColor": [
+        0,
+        0.53333333333333,
+        1,
+        1
+      ],
+      "borderBackdrop": "Blizzard Tooltip",
+      "borderInFront": true,
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "conditions": [],
+      "config": {
+        "BigIcon": {
+          "EnableBigIcon": false,
+          "enableSpellIDFiltering": false,
+          "excludeCast": false,
+          "specifiedSpellID": ""
+        }
+      },
+      "cooldown": true,
+      "cooldownEdge": false,
+      "cooldownSwipe": true,
+      "cooldownTextDisabled": false,
+      "customText": "function()\n    if aura_env.state and aura_env.state.barName then\n        if aura_env.state.count and aura_env.state.count > 0 then\n            return aura_env.state.barName..\" (\"..aura_env.state.count..\")\"\n        else\n            return aura_env.state.barName\n        end\n    end\nend",
+      "customTextUpdate": "event",
+      "desaturate": false,
+      "frameStrata": 1,
+      "glow": false,
+      "glowBorder": false,
+      "glowColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "glowFrequency": 0.25,
+      "glowLength": 10,
+      "glowLines": 8,
+      "glowScale": 1,
+      "glowThickness": 4,
+      "glowType": "buttonOverlay",
+      "glowXOffset": 0,
+      "glowYOffset": 0,
+      "height": 80,
+      "icon": true,
+      "iconSource": -1,
+      "icon_color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "icon_side": "LEFT",
+      "id": "Raid Ability Timeline BigIcon WIP",
+      "information": {
+        "ignoreOptionsEventErrors": true
+      },
+      "internalVersion": 50,
+      "inverse": false,
+      "keepAspectRatio": false,
+      "load": {
+        "class": {
+          "multi": []
+        },
+        "difficulty": [],
+        "instance_type": {
+          "multi": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            true
+          ],
+          "single": 8
+        },
+        "size": {
+          "multi": {
+            "party": true
+          },
+          "single": "party"
+        },
+        "spec": {
+          "multi": []
+        },
+        "talent": {
+          "multi": []
+        },
+        "use_never": false
+      },
+      "orientation": "HORIZONTAL",
+      "regionType": "icon",
+      "selfPoint": "CENTER",
+      "semver": "1.0.0",
+      "spark": false,
+      "sparkBlendMode": "ADD",
+      "sparkColor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "sparkHeight": 30,
+      "sparkHidden": "NEVER",
+      "sparkOffsetX": 0,
+      "sparkOffsetY": 0,
+      "sparkRotation": 0,
+      "sparkRotationMode": "AUTO",
+      "sparkTexture": "Interface\\CastingBar\\UI-CastingBar-Spark",
+      "sparkWidth": 10,
+      "stickyDuration": false,
+      "subRegions": [
+        {
+          "type": "subbackground"
+        },
+        {
+          "anchorXOffset": 0,
+          "anchorYOffset": 0,
+          "rotateText": "NONE",
+          "text_anchorPoint": "CENTER",
+          "text_automaticWidth": "Auto",
+          "text_color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "text_fixedWidth": 64,
+          "text_font": "Expressway",
+          "text_fontSize": 16,
+          "text_fontType": "OUTLINE",
+          "text_justify": "CENTER",
+          "text_selfPoint": "AUTO",
+          "text_shadowColor": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "text_shadowXOffset": 1,
+          "text_shadowYOffset": -1,
+          "text_text": "%p",
+          "text_text_format_p_format": "timed",
+          "text_text_format_p_time_dynamic_threshold": 60,
+          "text_text_format_p_time_format": 0,
+          "text_text_format_p_time_precision": 1,
+          "text_visible": false,
+          "text_wordWrap": "WordWrap",
+          "type": "subtext"
+        },
+        {
+          "anchorXOffset": 0,
+          "anchorYOffset": 0,
+          "rotateText": "NONE",
+          "text_anchorPoint": "OUTER_BOTTOM",
+          "text_automaticWidth": "Auto",
+          "text_color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "text_fixedWidth": 64,
+          "text_font": "Friz Quadrata TT",
+          "text_fontSize": 16,
+          "text_fontType": "OUTLINE",
+          "text_justify": "CENTER",
+          "text_selfPoint": "AUTO",
+          "text_shadowColor": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "text_shadowXOffset": 1,
+          "text_shadowYOffset": -1,
+          "text_text": "soon",
+          "text_visible": false,
+          "text_wordWrap": "WordWrap",
+          "type": "subtext"
+        },
+        {
+          "anchorXOffset": 0,
+          "anchorYOffset": 0,
+          "rotateText": "NONE",
+          "text_anchorPoint": "ICON_CENTER",
+          "text_automaticWidth": "Auto",
+          "text_color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "text_fixedWidth": 64,
+          "text_font": "Friz Quadrata TT",
+          "text_fontSize": 12,
+          "text_fontType": "None",
+          "text_justify": "CENTER",
+          "text_selfPoint": "AUTO",
+          "text_shadowColor": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "text_shadowXOffset": 1,
+          "text_shadowYOffset": -1,
+          "text_text": "%s",
+          "text_text_format_c2_format": "none",
+          "text_text_format_s_format": "none",
+          "text_visible": false,
+          "text_wordWrap": "WordWrap",
+          "type": "subtext"
+        }
+      ],
+      "text1": "%count",
+      "text1Color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "text1Containment": "INSIDE",
+      "text1Enabled": true,
+      "text1Font": "Expressway",
+      "text1FontFlags": "OUTLINE",
+      "text1FontSize": 22,
+      "text1Point": "BOTTOMRIGHT",
+      "text2": "%p",
+      "text2Color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "text2Containment": "INSIDE",
+      "text2Enabled": false,
+      "text2Font": "Friz Quadrata TT",
+      "text2FontFlags": "OUTLINE",
+      "text2FontSize": 24,
+      "text2Point": "CENTER",
+      "texture": "Minimalist",
+      "tocversion": 20503,
+      "triggers": {
+        "1": {
+          "trigger": {
+            "check": "event",
+            "custom": "function(allstates,event,bar,kek)\n    \n    if aura_env.config.BigIcon.EnableBigIcon == true then\n        \n        if event == \"ENCOUNTER_START\" then\n            aura_env.counter = {}\n        end\n        if event == \"BigWigs_StartBar\" then\n            if bar then\n                local b = WeakAuras.GetBigWigsTimerById(bar)\n                if b then\n                    local duration = b.duration\n                    local spellID = b.spellId\n                    if aura_env.config.BigIcon.enableSpellIDFiltering == true then\n                        if aura_env.specifiedSpellID\n                        and aura_env.specifiedSpellID[tonumber(spellID)] \n                        then \n                            if duration > 5 then\n                                C_Timer.After(duration-5, function() WeakAuras.ScanEvents(\"JODS_TIMER_HIGHLIGHT_RECHECK\", bar,\"BW\") end)  \n                            end\n                            \n                            \n                        end\n                    else \n                        \n                        if duration > 5 then\n                            C_Timer.After(duration-5, function() WeakAuras.ScanEvents(\"JODS_TIMER_HIGHLIGHT_RECHECK\", bar,\"BW\") end)  \n                        end\n                        \n                    end\n                    \n                end\n                \n                \n                \n            end\n        end\n        if event == \"BigWigs_StopBar\" then\n            local state = allstates[bar] \n            if state then\n                \n                state.show = false\n                state.changed = true\n            end\n        end\n        \n        if event == \"DBM_TimerStop\" then\n            local state = allstates[bar] \n            \n            if state then\n                \n                state.show = false\n                state.changed = true\n            end\n        end\n        \n        if event == \"DBM_TimerStart\" then\n            if bar then \n                local b = WeakAuras.GetDBMTimerById(bar)\n                if b then\n                    local duration = b.duration\n                    local spellID = b.spellId\n                    if aura_env.config.BigIcon.enableSpellIDFiltering == true then\n                        if aura_env.specifiedSpellID\n                        and aura_env.specifiedSpellID[tonumber(spellID)]  \n                        then\n                            if duration > 5 then\n                                C_Timer.After(duration-5, function() WeakAuras.ScanEvents(\"JODS_TIMER_HIGHLIGHT_RECHECK\", bar,\"DBM\") end)\n                            end\n                            \n                        end\n                    else\n                        if duration > 5 then\n                            C_Timer.After(duration-5, function() WeakAuras.ScanEvents(\"JODS_TIMER_HIGHLIGHT_RECHECK\", bar,\"DBM\") end)\n                        end\n                        \n                    end\n                    \n                end\n                \n                \n            end\n        end\n        \n        if event == \"JODS_TIMER_HIGHLIGHT_MOVEBAR\" then\n            aura_env.flag = true\n        end\n        \n        \n        if event == \"JODS_TIMER_HIGHLIGHT_RECHECK\" then\n            if bar then\n                local b = nil\n                if kek == \"DBM\" then\n                    b = WeakAuras.GetDBMTimerById(bar)\n                    if b then\n                        local duration = b.duration\n                        local expiration = b.expirationTime\n                        local icon = b.icon\n                        local text = b.message\n                        local spellID = b.spellId\n                        \n                        \n                        allstates[bar] = {\n                            show = true,\n                            changed = true,\n                            progressType = \"timed\",\n                            duration = expiration-GetTime(),\n                            expirationTime = expiration,\n                            icon = icon,\n                            barName  = text,\n                            spellID = spellID,\n                            autoHide = true,\n                            resort = true,\n                        }\n                        aura_env.flag = true\n                        \n                        C_Timer.After(duration-5, function() WeakAuras.ScanEvents(\"JODS_TIMER_HIGHLIGHT_MOVEBAR\", bar) end)\n                    end\n                end\n                \n                if kek == \"BW\" then\n                    b = WeakAuras.GetBigWigsTimerById(bar)\n                    if b then\n                        local duration = b.expirationTime-GetTime()\n                        local expiration = b.expirationTime\n                        local icon = b.icon\n                        local text = b.text\n                        local spellID = b.spellId\n                        local isCast = b.cast\n                        local emphasized = b.emphasized\n                        \n                        if (not aura_env.config.BigIcon.excludeCast or aura_env.config.BigIcon.excludeCast and not isCast) then\n                            local output = text\n                            if not isCast then\n                                output = string.gsub(text, \"%s%(%d+%)\", \"\")\n                                if not aura_env.counter[output] then\n                                    aura_env.counter[output] = 1\n                                else aura_env.counter[output] = aura_env.counter[output] + 1\n                                end\n                            else\n                                output = text\n                            end\n                            \n                            if duration <6 and duration >0 then\n                                allstates[bar] = {\n                                    show = true,\n                                    changed = true,\n                                    progressType = \"timed\",\n                                    duration = expiration-GetTime(),\n                                    expirationTime = expiration,\n                                    icon = icon,\n                                    barName  = output,\n                                    emphasized = emphasized,\n                                    isCast = isCast,\n                                    spellID = spellID,\n                                    count = aura_env.counter[output] or 0,\n                                    autoHide = true,\n                                    resort = true,\n                                }\n                                aura_env.flag = true\n                                C_Timer.After(duration-5, function() WeakAuras.ScanEvents(\"JODS_TIMER_HIGHLIGHT_MOVEBAR\", bar) end)\n                            end\n                        end\n                        \n                    end\n                end\n                \n            end\n        end\n        \n        \n        return true\n    end\n    \nend",
+            "customVariables": "{\n    duration = duration,\n    expirationTime = true,\n    emphasized = \"bool\",\n    isCast = \"bool\",\n    barName = \"string\",\n    spellID = \"string\",\n    count = \"number\",\n}",
+            "custom_hide": "timed",
+            "custom_type": "stateupdate",
+            "debuffType": "HELPFUL",
+            "event": "Health",
+            "events": "BigWigs_StartBar, BigWigs_StopBar, ENCOUNTER_START, DBM_TimerStart , DBM_TimerStop, JODS_TIMER_HIGHLIGHT_RECHECK ",
+            "names": [],
+            "spellIds": [],
+            "subeventPrefix": "SPELL",
+            "subeventSuffix": "_CAST_START",
+            "type": "custom",
+            "unit": "player"
+          },
+          "untrigger": []
+        },
+        "2": {
+          "trigger": {
+            "debuffType": "HELPFUL",
+            "duration": "1",
+            "event": "DBM Timer",
+            "genericShowOn": "showOnCooldown",
+            "message_operator": "find('%s')",
+            "realSpellName": 0,
+            "remaining": "5",
+            "remaining_operator": "<",
+            "spellName": 0,
+            "type": "addons",
+            "unevent": "auto",
+            "unit": "player",
+            "use_cloneId": false,
+            "use_genericShowOn": true,
+            "use_message": false,
+            "use_remaining": true,
+            "use_spellName": true,
+            "use_track": true
+          },
+          "untrigger": []
+        },
+        "3": {
+          "trigger": {
+            "debuffType": "HELPFUL",
+            "duration": "1",
+            "event": "BigWigs Timer",
+            "genericShowOn": "showOnCooldown",
+            "realSpellName": 0,
+            "remaining": "5",
+            "remaining_operator": "<",
+            "spellName": 0,
+            "type": "addons",
+            "unevent": "auto",
+            "unit": "player",
+            "use_genericShowOn": true,
+            "use_remaining": true,
+            "use_spellName": true,
+            "use_track": true
+          },
+          "untrigger": []
+        },
+        "activeTriggerMode": -10,
+        "customTriggerLogic": "function(t)\n    return t[1] \nend\n\n\n",
+        "disjunctive": "custom"
+      },
+      "uid": "P0PU(rEWZHT",
+      "url": "https://wago.io/BEEWb7XdO/1",
+      "useAdjustededMax": false,
+      "useAdjustededMin": false,
+      "useglowColor": false,
+      "version": 1,
+      "wagoID": "BEEWb7XdO",
+      "width": 80,
+      "xOffset": 25,
+      "yOffset": -257.00009155273,
+      "zoom": 0.3
+    }
+  ],
+  "d": {
+    "actions": {
+      "finish": [],
+      "init": [],
+      "start": []
+    },
+    "anchorFrameType": "SCREEN",
+    "anchorPoint": "CENTER",
+    "animation": {
+      "finish": {
+        "duration_type": "seconds",
+        "easeStrength": 3,
+        "easeType": "none",
+        "type": "none"
+      },
+      "main": {
+        "duration_type": "seconds",
+        "easeStrength": 3,
+        "easeType": "none",
+        "type": "none"
+      },
+      "start": {
+        "duration_type": "seconds",
+        "easeStrength": 3,
+        "easeType": "none",
+        "type": "none"
+      }
+    },
+    "authorOptions": [],
+    "backdropColor": [
+      1,
+      1,
+      1,
+      0.5
+    ],
+    "border": false,
+    "borderBackdrop": "Blizzard Tooltip",
+    "borderColor": [
+      1,
+      1,
+      1,
+      0.5
+    ],
+    "borderEdge": "None",
+    "borderInset": 11,
+    "borderOffset": 5,
+    "borderSize": 16,
+    "conditions": [],
+    "config": [],
+    "desc": "DBM Bulo Test",
+    "frameStrata": 1,
+    "groupIcon": 134376,
+    "id": "DBM Bulo test",
+    "information": {
+      "groupOffset": true,
+      "ignoreOptionsEventErrors": true
+    },
+    "internalVersion": 50,
+    "load": {
+      "affixes": {
+        "multi": []
+      },
+      "class": {
+        "multi": []
+      },
+      "difficulty": {
+        "multi": []
+      },
+      "faction": {
+        "multi": []
+      },
+      "ingroup": {
+        "multi": []
+      },
+      "pvptalent": {
+        "multi": []
+      },
+      "race": {
+        "multi": []
+      },
+      "role": {
+        "multi": []
+      },
+      "size": {
+        "multi": []
+      },
+      "spec": {
+        "multi": []
+      },
+      "talent": {
+        "multi": []
+      },
+      "talent2": {
+        "multi": []
+      },
+      "use_class": false,
+      "zoneIds": ""
+    },
+    "regionType": "group",
+    "scale": 1,
+    "selfPoint": "BOTTOMLEFT",
+    "semver": "1.0.0",
+    "subRegions": [],
+    "tocversion": 20503,
+    "triggers": {
+      "1": {
+        "trigger": {
+          "buffShowOn": "showOnActive",
+          "debuffType": "HELPFUL",
+          "event": "Health",
+          "names": [],
+          "spellIds": [],
+          "subeventPrefix": "SPELL",
+          "subeventSuffix": "_CAST_START",
+          "type": "aura",
+          "unit": "player"
+        },
+        "untrigger": []
+      },
+      "activeTriggerMode": -10,
+      "disjunctive": "all"
+    },
+    "uid": "rsF)xvpdH)S",
+    "url": "https://wago.io/BEEWb7XdO/1",
+    "version": 1,
+    "wagoID": "BEEWb7XdO",
+    "xOffset": 322.11108398438,
+    "yOffset": 269.77758789063
+  },
+  "m": "d",
+  "s": "3.7.8",
+  "v": 1421,
+  "wagoID": "BEEWb7XdO"
+}
