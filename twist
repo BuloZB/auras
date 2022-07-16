@@ -1,0 +1,416 @@
+{
+  "c": [
+    {
+      "actions": {
+        "finish": {
+          "do_custom": false,
+          "do_glow": false,
+          "do_sound": true,
+          "sound": "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\RobotBlip.ogg",
+          "stop_sound": false
+        },
+        "init": [],
+        "start": []
+      },
+      "alpha": 1,
+      "anchorFrameType": "SCREEN",
+      "anchorPoint": "CENTER",
+      "animation": {
+        "finish": {
+          "duration_type": "seconds",
+          "easeStrength": 3,
+          "easeType": "none",
+          "type": "none"
+        },
+        "main": {
+          "duration_type": "seconds",
+          "easeStrength": 3,
+          "easeType": "none",
+          "type": "none"
+        },
+        "start": {
+          "duration_type": "seconds",
+          "easeStrength": 3,
+          "easeType": "none",
+          "type": "none"
+        }
+      },
+      "authorOptions": [],
+      "backgroundColor": [
+        0.5,
+        0.5,
+        0.5,
+        0.5
+      ],
+      "backgroundOffset": 2,
+      "backgroundTexture": "Interface\\Addons\\WeakAuras\\PowerAurasMedia\\Auras\\Aura3",
+      "blendMode": "BLEND",
+      "compress": false,
+      "conditions": [],
+      "config": [],
+      "crop_x": 0.41,
+      "crop_y": 0.41,
+      "desaturateBackground": false,
+      "desaturateForeground": false,
+      "endAngle": 360,
+      "font": "Friz Quadrata TT",
+      "fontSize": 12,
+      "foregroundColor": [
+        1,
+        0.31764705882353,
+        0.25882352941176,
+        1
+      ],
+      "foregroundTexture": "Interface\\AddOns\\WeakAuras\\Media\\Textures\\Circle_White_Border",
+      "frameStrata": 1,
+      "height": 125,
+      "id": "WF countdown",
+      "information": [],
+      "internalVersion": 51,
+      "inverse": false,
+      "load": {
+        "class": {
+          "multi": [],
+          "single": "SHAMAN"
+        },
+        "size": {
+          "multi": []
+        },
+        "spec": {
+          "multi": []
+        },
+        "talent": {
+          "multi": []
+        },
+        "use_class": true
+      },
+      "mirror": false,
+      "orientation": "ANTICLOCKWISE",
+      "regionType": "progresstexture",
+      "rotation": 0,
+      "sameTexture": true,
+      "selfPoint": "CENTER",
+      "semver": "1.0.0",
+      "slantMode": "INSIDE",
+      "startAngle": 0,
+      "subRegions": [
+        {
+          "type": "subbackground"
+        }
+      ],
+      "textureWrapMode": "CLAMPTOBLACKADDITIVE",
+      "tocversion": 20504,
+      "triggers": {
+        "1": {
+          "trigger": {
+            "debuffType": "HELPFUL",
+            "duration": "9",
+            "event": "Combat Log",
+            "names": [],
+            "sourceUnit": "player",
+            "spellIds": [],
+            "spellName": "Windfury Totem",
+            "subeventPrefix": "SPELL",
+            "subeventSuffix": "_CAST_SUCCESS",
+            "type": "combatlog",
+            "unit": "player",
+            "use_sourceUnit": true,
+            "use_spellName": true
+          },
+          "untrigger": []
+        },
+        "activeTriggerMode": -10
+      },
+      "uid": "706BAmvmsuz",
+      "url": "https://wago.io/zGvfEz9Fm/1",
+      "useAdjustededMax": false,
+      "useAdjustededMin": false,
+      "user_x": 0,
+      "user_y": 0,
+      "version": 1,
+      "wagoID": "zGvfEz9Fm",
+      "width": 125,
+      "xOffset": 127.69069296562,
+      "yOffset": 89.967630765902
+    },
+    {
+      "actions": {
+        "finish": [],
+        "init": [],
+        "start": []
+      },
+      "alpha": 1,
+      "anchorFrameType": "SCREEN",
+      "anchorPoint": "CENTER",
+      "animation": {
+        "finish": {
+          "duration_type": "seconds",
+          "easeStrength": 3,
+          "easeType": "none",
+          "type": "none"
+        },
+        "main": {
+          "duration_type": "seconds",
+          "easeStrength": 3,
+          "easeType": "none",
+          "type": "none"
+        },
+        "start": {
+          "duration_type": "seconds",
+          "easeStrength": 3,
+          "easeType": "none",
+          "type": "none"
+        }
+      },
+      "authorOptions": [],
+      "color": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "conditions": [
+        {
+          "changes": [
+            {
+              "property": "sub.3.glow",
+              "value": true
+            }
+          ],
+          "check": {
+            "op": "find('%s')",
+            "trigger": 1,
+            "value": "Windfury Totem",
+            "variable": "totemName"
+          }
+        }
+      ],
+      "config": [],
+      "cooldown": false,
+      "cooldownEdge": false,
+      "cooldownSwipe": true,
+      "cooldownTextDisabled": false,
+      "desaturate": false,
+      "frameStrata": 1,
+      "height": 49.841457366943,
+      "icon": true,
+      "iconSource": -1,
+      "id": "Air Totem Display",
+      "information": [],
+      "internalVersion": 51,
+      "inverse": false,
+      "keepAspectRatio": false,
+      "load": {
+        "class": {
+          "multi": [],
+          "single": "SHAMAN"
+        },
+        "size": {
+          "multi": []
+        },
+        "spec": {
+          "multi": []
+        },
+        "talent": {
+          "multi": []
+        },
+        "use_class": true,
+        "use_never": false
+      },
+      "regionType": "icon",
+      "selfPoint": "CENTER",
+      "semver": "1.0.0",
+      "subRegions": [
+        {
+          "type": "subbackground"
+        },
+        {
+          "anchorXOffset": 0,
+          "anchorYOffset": 0,
+          "rotateText": "NONE",
+          "text_anchorPoint": "INNER_BOTTOMRIGHT",
+          "text_automaticWidth": "Auto",
+          "text_color": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "text_fixedWidth": 64,
+          "text_font": "Friz Quadrata TT",
+          "text_fontSize": 11,
+          "text_fontType": "OUTLINE",
+          "text_justify": "CENTER",
+          "text_selfPoint": "AUTO",
+          "text_shadowColor": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "text_shadowXOffset": 0,
+          "text_shadowYOffset": 0,
+          "text_text": "%s",
+          "text_text_format_s_format": "none",
+          "text_visible": true,
+          "text_wordWrap": "WordWrap",
+          "type": "subtext"
+        },
+        {
+          "glow": false,
+          "glowBorder": false,
+          "glowColor": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "glowFrequency": 0.25,
+          "glowLength": 10,
+          "glowLines": 8,
+          "glowScale": 1,
+          "glowThickness": 1,
+          "glowType": "buttonOverlay",
+          "glowXOffset": 0,
+          "glowYOffset": 0,
+          "type": "subglow",
+          "useGlowColor": false
+        }
+      ],
+      "tocversion": 20504,
+      "triggers": {
+        "1": {
+          "trigger": {
+            "debuffType": "HELPFUL",
+            "event": "Totem",
+            "genericShowOn": "showOnCooldown",
+            "names": [],
+            "realSpellName": 0,
+            "spellIds": [],
+            "spellName": 0,
+            "subeventPrefix": "SPELL",
+            "subeventSuffix": "_CAST_START",
+            "totemType": 4,
+            "type": "spell",
+            "unit": "player",
+            "use_genericShowOn": true,
+            "use_remaining": false,
+            "use_spellName": true,
+            "use_totemType": true,
+            "use_track": true
+          },
+          "untrigger": []
+        },
+        "activeTriggerMode": -10
+      },
+      "uid": "MWH98QZ4BeU",
+      "url": "https://wago.io/zGvfEz9Fm/1",
+      "version": 1,
+      "wagoID": "zGvfEz9Fm",
+      "width": 49.840934753418,
+      "xOffset": 123.5894789838,
+      "yOffset": 85.301662915275,
+      "zoom": 0
+    }
+  ],
+  "d": {
+    "actions": {
+      "finish": [],
+      "init": [],
+      "start": []
+    },
+    "anchorFrameType": "SCREEN",
+    "anchorPoint": "CENTER",
+    "animation": {
+      "finish": {
+        "duration_type": "seconds",
+        "easeStrength": 3,
+        "easeType": "none",
+        "type": "none"
+      },
+      "main": {
+        "duration_type": "seconds",
+        "easeStrength": 3,
+        "easeType": "none",
+        "type": "none"
+      },
+      "start": {
+        "duration_type": "seconds",
+        "easeStrength": 3,
+        "easeType": "none",
+        "type": "none"
+      }
+    },
+    "authorOptions": [],
+    "backdropColor": [
+      1,
+      1,
+      1,
+      0.5
+    ],
+    "border": false,
+    "borderBackdrop": "Blizzard Tooltip",
+    "borderColor": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "borderEdge": "Square Full White",
+    "borderInset": 1,
+    "borderOffset": 4,
+    "borderSize": 2,
+    "conditions": [],
+    "config": [],
+    "frameStrata": 1,
+    "groupIcon": "",
+    "id": "lopata twist",
+    "information": [],
+    "internalVersion": 51,
+    "load": {
+      "class": {
+        "multi": []
+      },
+      "size": {
+        "multi": []
+      },
+      "spec": {
+        "multi": []
+      },
+      "talent": {
+        "multi": []
+      }
+    },
+    "regionType": "group",
+    "scale": 0.7,
+    "selfPoint": "CENTER",
+    "semver": "1.0.0",
+    "subRegions": [],
+    "tocversion": 20504,
+    "triggers": [
+      {
+        "trigger": {
+          "debuffType": "HELPFUL",
+          "event": "Health",
+          "names": [],
+          "spellIds": [],
+          "subeventPrefix": "SPELL",
+          "subeventSuffix": "_CAST_START",
+          "type": "aura2",
+          "unit": "player"
+        },
+        "untrigger": []
+      }
+    ],
+    "uid": "e1Z5x)kuA7T",
+    "url": "https://wago.io/zGvfEz9Fm/1",
+    "version": 1,
+    "wagoID": "zGvfEz9Fm",
+    "xOffset": -304.68288282043,
+    "yOffset": -685.2482042202
+  },
+  "m": "d",
+  "s": "3.7.14",
+  "v": 1421,
+  "wagoID": "zGvfEz9Fm"
+}
