@@ -1,0 +1,232 @@
+{
+  "d": {
+    "actions": {
+      "finish": {
+        "custom": "",
+        "do_custom": false
+      },
+      "init": {
+        "custom": "-- seconds to hold down modifier to enable the release button\naura_env.TIMEOUT = aura_env.config.TIMEOUT\n\n-- should we auto-release if modifier is held down long enough?\naura_env.AUTO_RELEASE = aura_env.config.AUTO_RELEASE\n\n-- format the text that explains this behavior\naura_env.INFO_TEXT = \"Hold %s for %d seconds to release.\"\naura_env.INFO_TEXT_SAFE = \"Keep holding and click the button.\"\n\n-- text shown below if someone can get back up and revive the group\naura_env.INFO_TEXT_HAS_RESS = \"|cffFF5555 DON T RELEASE!|r\"\n\n\n-- get modifier key\nlocal function IsModifierKeyDown()\n    -- print(\"key down\")\n    -- print(aura_env.config.modKey)\n    if aura_env.config.modKey == 1 then\n        return IsShiftKeyDown, \"SHIFT\"\n    elseif aura_env.config.modKey == 3 then\n        return IsAltKeyDown, \"ALT\"\n    end\n    return IsControlKeyDown, \"CTRL\"\nend\n\n-- returns the popup widget\nfunction aura_env:GetPopup()\n    local _, sp = StaticPopup_Visible(\"DEATH\")\n    return sp\nend\n\n-- copied from StaticPopup.lua#26\nlocal function GetSelfResurrectDialogOptions()\n    local resOptions = GetSortedSelfResurrectOptions()\n    if resOptions then\n        if IsEncounterLimitingResurrections() then\n            return resOptions[1], resOptions[2]\n        else\n            return resOptions[1]\n        end\n    end\nend\n\n-- returns true if we can release and the button is enabled by default\nfunction aura_env:CanRelease()\n    local sp = self:GetPopup()\n    local allowed = true\n    if sp then\n        if IsFalling() and not IsOutOfBounds() then\n            allowed = false -- wait until corpse lands\n        elseif IsEncounterSuppressingRelease() then\n            allowed = false -- encounter keeps us dead\n        elseif HasNoReleaseAura() then\n            allowed = false -- forced to stay dead\n        else\n            \n            -- self ress options with potential restrictions\n            local option1, option2 = GetSelfResurrectDialogOptions()\n            if option1 and not option1.canUse then\n                allowed = false\n            end\n            if option2 and not option2.canUse then\n                allowed = false\n            end\n        end\n    end\n    return allowed, sp\nend\n\n-- returns true if we aren't restricted and can release\nfunction aura_env:IsReleaseAllowed()\n    local canRelease, sp = self:CanRelease()\n    if canRelease and sp then\n        -- is running not worth it?\n        local allowed = not self:ShouldPreventRelease()\n        -- check if we have held modifier long enough - if we aren't allowed to run\n        if not allowed then\n            local _, remain = aura_env:UpdateModifierStatus()\n            if remain then\n                return remain < 1\n            end\n        end\n        -- is running allowed?\n        return allowed\n    end\n    return true\nend\n\n-- called every second in order to keep the button status up-to-date\nfunction aura_env:UpdateButton()\n    \n    local canRelease, sp = self:CanRelease()\n    -- print(canRelease)\n    if canRelease then\n        -- update button status\n        local status = self:IsReleaseAllowed()\n        sp.button1:SetShown(status)\n        --  print(\"button to false\")\n        -- append our explanation text and resize the popup widget\n        local text = sp.text:GetText()\n        if not status then\n            if text then\n                -- print(text)\n                local _, remain, modName = aura_env:UpdateModifierStatus()\n                local t\n                -- print(remain)\n                if remain and remain >= 1 then\n                    -- print(\"remain >=1\")\n                    t = format(self.INFO_TEXT, modName, max(0, remain))\n                elseif remain then\n                    -- print(\"elseif\")\n                    t = self.INFO_TEXT_SAFE\n                else\n                    --  print(\"else\")\n                    t = format(self.INFO_TEXT, modName, aura_env.TIMEOUT)\n                end\n                \n                t = aura_env.INFO_TEXT_HAS_RESS:format(c) .. \"\\n\" .. t\n                -- print(t)\n                sp.text:SetText(t)\n                StaticPopup_Resize(sp, sp.which)\n            end\n            return true\n        end\n    end\n    return false\nend\n\n-- called to update modifier status, returns also seconds elapsed\nfunction aura_env:UpdateModifierStatus()\n    local isModifierKeyDown, modifierKeyName = IsModifierKeyDown()\n    -- print(\"Modifier\")\n    if aura_env.TIMEOUT <= 0 then\n        return 0, 0, modifierKeyName\n    elseif isModifierKeyDown() then\n        if not aura_env.keyPressed then\n            aura_env.keyPressed = GetTime() + aura_env.TIMEOUT\n        end\n    else\n        aura_env.keyPressed = nil\n    end\n    local elapsed = aura_env.keyPressed\n    if elapsed then\n        return elapsed, elapsed - GetTime(), modifierKeyName\n    end\n    return elapsed, nil, modifierKeyName\nend\n\n\nfunction aura_env:ShouldPreventRelease()\n    \n    for i=1,10 do\n        local _,_,_,_,_,_,_,_,_,spellid = UnitDebuff(\"player\", i)\n        if spellid == 57724 or spellid == 57723 then\n            return true\n        end\n        return false\n    end\nend   \n\n\n\n\n",
+        "do_custom": true
+      },
+      "start": {
+        "do_custom": false,
+        "do_message": false,
+        "do_sound": false,
+        "message": "",
+        "message_type": "PRINT"
+      }
+    },
+    "anchorFrameType": "SCREEN",
+    "anchorPoint": "CENTER",
+    "animation": {
+      "finish": {
+        "duration_type": "seconds",
+        "easeStrength": 3,
+        "easeType": "none",
+        "type": "none"
+      },
+      "main": {
+        "duration_type": "seconds",
+        "easeStrength": 3,
+        "easeType": "none",
+        "type": "none"
+      },
+      "start": {
+        "duration_type": "seconds",
+        "easeStrength": 3,
+        "easeType": "none",
+        "type": "none"
+      }
+    },
+    "authorOptions": [
+      {
+        "default": 2,
+        "key": "modKey",
+        "name": "Modifier key",
+        "type": "select",
+        "useDesc": false,
+        "values": [
+          "Shift",
+          "Control",
+          "Alt"
+        ],
+        "width": 1
+      },
+      {
+        "default": 2,
+        "key": "TIMEOUT",
+        "max": 60,
+        "min": 0,
+        "name": "Hold key down for # seconds before enabling the release button",
+        "step": 0.1,
+        "type": "number",
+        "useDesc": false,
+        "width": 2
+      },
+      {
+        "default": false,
+        "key": "AUTO_RELEASE",
+        "name": "Auto-release when release button is clickable",
+        "type": "toggle",
+        "useDesc": false,
+        "width": 2
+      },
+      {
+        "default": false,
+        "desc": "Enabling this makes the dialog shake a lot when you get closer to the button with your cursor.",
+        "key": "APE",
+        "name": "Enable Ape mode (EXPERIMENTAL)",
+        "type": "toggle",
+        "useDesc": true,
+        "width": 2
+      }
+    ],
+    "automaticWidth": "Auto",
+    "color": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "conditions": [],
+    "config": {
+      "APE": false,
+      "AUTO_RELEASE": false,
+      "TIMEOUT": 1,
+      "modKey": 2
+    },
+    "customText": "",
+    "customTextUpdate": "update",
+    "displayText": " ",
+    "fixedWidth": 1,
+    "font": "Friz Quadrata TT",
+    "fontSize": 12,
+    "frameStrata": 1,
+    "height": 0.99994909763336,
+    "id": "Fojji - Don't Release V2 // Retail Edit",
+    "information": {
+      "ignoreOptionsEventErrors": true
+    },
+    "internalVersion": 53,
+    "justify": "LEFT",
+    "load": {
+      "class": {
+        "multi": []
+      },
+      "difficulty": {
+        "multi": {
+          "challenge": true,
+          "heroic": true,
+          "mythic": true,
+          "normal": true
+        }
+      },
+      "faction": {
+        "multi": []
+      },
+      "ingroup": {
+        "multi": []
+      },
+      "instance_type": [],
+      "pvptalent": {
+        "multi": []
+      },
+      "race": {
+        "multi": []
+      },
+      "role": {
+        "multi": []
+      },
+      "size": {
+        "multi": {
+          "flexible": true,
+          "fortyman": true,
+          "party": true,
+          "ten": true,
+          "twenty": true,
+          "twentyfive": true
+        }
+      },
+      "spec": {
+        "multi": []
+      },
+      "talent": {
+        "multi": []
+      },
+      "talent2": {
+        "multi": []
+      },
+      "use_alive": false,
+      "use_encounterid": false,
+      "use_never": false,
+      "use_zone": false
+    },
+    "outline": "OUTLINE",
+    "regionType": "text",
+    "selfPoint": "CENTER",
+    "semver": "1.0.1",
+    "shadowColor": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "shadowXOffset": 1,
+    "shadowYOffset": -1,
+    "source": "import",
+    "subRegions": [
+      {
+        "type": "subbackground"
+      }
+    ],
+    "tocversion": 30400,
+    "triggers": {
+      "1": {
+        "trigger": {
+          "debuffType": "HELPFUL",
+          "duration": "1",
+          "event": "Conditions",
+          "genericShowOn": "showOnActive",
+          "names": [],
+          "spellIds": [],
+          "subeventPrefix": "SPELL",
+          "subeventSuffix": "_CAST_START",
+          "type": "unit",
+          "unevent": "auto",
+          "unit": "player",
+          "use_alive": false,
+          "use_unit": true
+        },
+        "untrigger": []
+      },
+      "2": {
+        "trigger": {
+          "check": "update",
+          "custom": "function()\n    if aura_env:GetPopup() then\n        aura_env:UpdateModifierStatus()\n        aura_env:UpdateButton()\n        return true\n    end\nend\n\n\n",
+          "custom_type": "status",
+          "event": "Health",
+          "genericShowOn": "showOnActive",
+          "subeventPrefix": "SPELL",
+          "subeventSuffix": "_CAST_START",
+          "type": "custom"
+        },
+        "untrigger": []
+      },
+      "activeTriggerMode": -10,
+      "disjunctive": "all"
+    },
+    "uid": "fJvfzfdTdF5",
+    "url": "https://wago.io/zlMMGfilv/2",
+    "version": 2,
+    "wagoID": "zlMMGfilv",
+    "width": 1.0000220537186,
+    "wordWrap": "Elide",
+    "xOffset": 0,
+    "yOffset": 0
+  },
+  "m": "d",
+  "s": "4.1.2",
+  "v": 1421,
+  "wagoID": "zlMMGfilv"
+}
